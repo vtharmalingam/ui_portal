@@ -10,17 +10,17 @@ import FlatButton from 'material-ui/FlatButton';
 import * as utils from '../../utils/utils'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import Slider from "react-slick";
-import { List, Avatar,Popover } from 'antd';
+import { List, Avatar, Popover } from 'antd';
 import InsLkupOptionsComp from '../../components/InsightLkpOptions';
 import InsightMenu from '../../components/InsightMenu';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import about from '../../assets/inslookup/about.png';
-import tickImage from '../../assets/inslookup/tick.png';
+// import about from '../../assets/inslookup/about.png';
+// import tickImage from '../../assets/inslookup/tick.png';
 export default class GlobalSrchSearchResults extends PureComponent {
 
   static defaultProps = {
-    inslkupMetadata:{},
+    inslkupMetadata: {},
     data: [],
     selectedItemData: {},
     perspective: "",
@@ -30,7 +30,7 @@ export default class GlobalSrchSearchResults extends PureComponent {
     className: PropTypes.string,
     perspective: PropTypes.string,
     data: PropTypes.array,
-    inslkupMetadata:PropTypes.object,
+    inslkupMetadata: PropTypes.object,
     selectedItemData: PropTypes.object,
     onLkpOptionSelected: PropTypes.func,
   };
@@ -212,8 +212,8 @@ export default class GlobalSrchSearchResults extends PureComponent {
 
           <CardActions>
             <Popover content={this.getAboutDetails(item)} title="ABOUT">
-           
-              <FlatButton label="ABOUT" labelStyle={{ fontSize: '10px' }} primary={true}  />
+
+              <FlatButton label="ABOUT" labelStyle={{ fontSize: '10px' }} primary={true} />
             </Popover>
 
             {/* Form here perspective links will construct.. */}
@@ -261,7 +261,7 @@ export default class GlobalSrchSearchResults extends PureComponent {
 
               <CardActions>
                 <Popover content={this.getAboutDetails(item)} title="ABOUT">
-                {/* <img src={about} /> */}
+                  {/* <img src={about} /> */}
                   <FlatButton label="ABOUT" labelStyle={{ fontSize: '10px' }} primary={true} />
                 </Popover>
 
@@ -288,7 +288,7 @@ export default class GlobalSrchSearchResults extends PureComponent {
 
   //This component renders method...
   render() {
-    const { data} = this.props;
+    const { data } = this.props;
     return (
       <div className={styles.searchResultsContainer}>
         {this.showMatchedCompanies(data)}
