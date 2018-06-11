@@ -15,8 +15,7 @@ import InsLkupOptionsComp from '../../components/InsightLkpOptions';
 import InsightMenu from '../../components/InsightMenu';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-// import about from '../../assets/inslookup/about.png';
-// import tickImage from '../../assets/inslookup/tick.png';
+
 export default class GlobalSrchSearchResults extends PureComponent {
 
   static defaultProps = {
