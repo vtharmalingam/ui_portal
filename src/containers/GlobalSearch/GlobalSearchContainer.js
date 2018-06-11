@@ -13,7 +13,7 @@ import InsightVisualComponent from '../../components/InsightVisuals';
 import { getNestedFormattedData } from '../../utils/UICompGen';
 
 /**
- * COmments:
+ * Comments added:
  * This is the global search container component.
  * This handles all the communications like,bringing search results,
  * handling lookup selections and getting rspective results
