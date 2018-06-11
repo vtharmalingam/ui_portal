@@ -1,0 +1,20 @@
+export const FETCH_SEARCH_SUGGEST = 'search_org/fetchSearchSuggest';
+export const VIEW = "view";
+export const DIMENSIONS = "dimensions";
+export const MEASURES = "measures";
+export const AGGS_DATA = "aggs_data";
+export const UITYPE_TREEMAP = "treemap";
+export const USERDEF_NAME = "userdef_name";
+export const DATA = "data";
+export const TITLE = "title";
+export const ABOUT = "about";
+export const GOAL = "goal";
+export const MSR_VAL_FORMATS = "measures_value_formats";
+export const START_DATE = "start_date";
+export const END_DATE = "end_date";
+export const ID = "id";
+export const REPORT_ID = "report_id";
+export const USER_ID = "user_id";
+
+export const FILTER_SEARCH = "filter_search";
+export const CRITERIA_SEARCH = "criteria_search";
