@@ -127,7 +127,8 @@ export default class Line extends Component {
      * Important:On transform,we mainly deal wwith measures,we can also do dimension aswell
      * 
      * below key is the name that you are giving to measures
-     * value is the measures value reference--->by this value reference we can mention the measure values
+     * value is the measures value reference--->by this value reference we can mention the measure values.
+     * Its like reference names for measures name and values
      */
     dv.transform({
       type: 'fold',
