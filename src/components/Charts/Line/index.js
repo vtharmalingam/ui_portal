@@ -123,11 +123,17 @@ export default class Line extends Component {
     const ds = new DataSet();
     const dv = ds.createView().source(data);
 
+    /**
+     * Important:On transform,we mainly deal wwith measures,we can also do dimension aswell
+     * 
+     * below key is the name that you are giving to measures
+     * value is the measures value reference--->by this value reference we can mention the measure values
+     */
     dv.transform({
       type: 'fold',
       fields: measures,
-      key: 'bookings',
-      value: 'value',
+      key: 'measurekey',
+      value: 'measurevalue',
     });
 
     const title = {
@@ -148,11 +154,11 @@ export default class Line extends Component {
       <div>
         <Chart height={window.innerHeight / 1.5} data={dv} forceFit scale={scale}>
           <Axis name="key" label={{ formatter: this.dimAxisformatter }} />
-          <Axis name="value" label={{ formatter: this.measuresAxisformatter }} />
+          <Axis name="measurevalue" label={{ formatter: this.measuresAxisformatter }} />
           <Legend />
           <Tooltip crosshairs={{ type: "y" }} />
-          <Geom type="line" position="key*value" size={2} color={'bookings'} tooltip={this.tooltipFormat } />
-          <Geom type='point' position="key*value" size={4} shape={'circle'} color={'key'}
+          <Geom type="line" position="key*measurevalue" size={2} color={'measurekey'} tooltip={this.tooltipFormat } />
+          <Geom type='point' position="key*measurevalue" size={4} shape={'circle'} color={'measurekey'}
             style={{ stroke: '#fff', lineWidth: 1 }} />
         </Chart>
       </div>
