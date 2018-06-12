@@ -63,8 +63,9 @@ export default class Grid extends Component {
 
     const { data, columns } = this.props;
     return (
-      <div >
-        <BootstrapTable data={data}  pagination height={window.innerHeight/2} search multiColumnSearch>
+      <div style={{fontSize:'10px'}}>
+        <BootstrapTable data={data} bodyStyle={{overflow: 'overlay'}}  pagination height={window.innerHeight/2} search multiColumnSearch
+        striped  hover condensed>
         {columns}
         </BootstrapTable>
       </div>

@@ -3691,8 +3691,9 @@ function getFormattedValue(formatSource, lookupkey, value) {
 //Based on given perspective get the inisghtlookup shortcuts..
 export function getNestedDataGrid(data) {
     var compData = data['data'];
-    var viewPart = compData['view'];
-    if (viewPart.hasOwnProperty('measures')) {
+    
+    if ( compData.hasOwnProperty('view') &&compData['view'].hasOwnProperty('measures')) {
+        var viewPart = compData['view'];
         var measures = viewPart['measures'];
         var dimensions = viewPart['dimensions'];
         var chartData = compData['aggs_data'][dimensions[0]];

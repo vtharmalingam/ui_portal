@@ -14,7 +14,7 @@ export async function getSuggestSearch(str) {
   .then(response => response.json())
   .catch(error => error)
   .then(data => {
-      // console.log(data) 
+       console.log("search suggestions:" +JSON.stringify(data));
        return data
    })
 } 
