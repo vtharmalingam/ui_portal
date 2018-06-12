@@ -307,10 +307,14 @@ export default class GlobalSearchContainer extends Component {
 
         </div>
 
-        <div className={styles.searchResultsContainer}>
+
+        {
+          globalSrchResults.length > 0 && <div className={styles.searchResultsContainer}  >
           <GlobalSrchSearchResults inslkupMetadata={inslkupMetadata} data={globalSrchResults}
             onLkpOptionSelected={this.onLkpOptionSelected} />
         </div>
+
+        }
 
         <div className={styles.visualsContainer}>
           <div className={utils.isObjectEmpty(insight_lookup_data) ? styles.hide : styles.show}>
