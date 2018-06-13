@@ -405,26 +405,28 @@ export default class GlobalSrchFilters extends PureComponent {
 	constructor() {
 		super();
 		this.state = {
-			searchByVal: {}, datamarts: [], modes: [], countrySelected: {}, countryVisible: true, countrySuggestions: [],
+			searchByVal: {}, datamarts: [], modes: [], countrySelected: null, countryVisible: true, countrySuggestions: [],
 			showPrimaryAdditionalInfo: true, showSecondaryAdditionalInfo: true, primaryAdditionalInfo: [], secondaryAdditionalInfo: [],
 			selectedPrimaryAdditionalInfo: {}, selectedSecondaryAdditionalInfo: {},
 			sourceDatamarts: [{ "id": "enduser", "label": "Endusers" },
 			{ "id": "support", "label": "Ticket Orgs" }, { "id": "reseller", "label": "Resellers" },
 			{ "id": "lead", "label": "Leads/Opportunities" }]
 		};
+
 		this.handleSrchByChange = this.handleSrchByChange.bind(this);
 		this.handleSrchModesChange = this.handleSrchModesChange.bind(this);
 		this.handlePerspChange = this.handlePerspChange.bind(this);
 		this.handleCountryChange = this.handleCountryChange.bind(this);
 		this.handlePrimAdditionalInfoChange = this.handlePrimAdditionalInfoChange.bind(this);
 		this.handleSecondAdditionalInfoChange = this.handleSecondAdditionalInfoChange.bind(this);
+		this.suggestCountry = this.suggestCountry.bind(this);
 	}
 
 	componentWillUnmount() {
 		clearTimeout(this.timeout);
 	}
 
-	
+
 	//TODO:
 	/**
 	 * Below Dropdown elements taking only inline styles
@@ -469,17 +471,18 @@ export default class GlobalSrchFilters extends PureComponent {
 	showCountries = (data) => {
 		const countries = data['global_search']['countries']['country'];
 		return (
-			// <AutoComplete value={this.state.countrySelected} onChange={this.handleCountryChange} optionLabel="name"
-			//                   suggestions={this.state.countrySuggestions} completeMethod={this.suggestCountry.bind(this)} />
+			<AutoComplete style={this.dropDownStyle} value={this.state.countrySelected}
+				onChange={this.handleCountryChange}
+				suggestions={this.state.countrySuggestions} placeholder="Select Country"
+				dropdown={true} minLength={1}
+				completeMethod={this.suggestCountry} field="name"
+				itemTemplate={this.countryTemplate.bind(this)} />
 
-			<Dropdown style={this.dropDownStyle}
-				value={this.state.countrySelected} options={countries}
-				onChange={this.handleCountryChange} itemTemplate={this.countryTemplate}
-				filter={true} filterPlaceholder="Select Country"
-				filterBy="name" showClear={true} />
-
-
-
+			// <Dropdown style={this.dropDownStyle}
+			// 	value={this.state.countrySelected} options={countries}
+			// 	onChange={this.handleCountryChange} itemTemplate={this.countryTemplate.bind(this)}
+			// 	filter={true} filterPlaceholder="Select Country"
+			// 	filterBy="name" showClear={true} />
 		)
 	}
 
@@ -487,17 +490,37 @@ export default class GlobalSrchFilters extends PureComponent {
 
 	//////Methods- when user changes any options/////////////////
 
-	suggestCountry(event) {
-		const countries = this.props.data['global_search']['countries']['country'];
-		let results = countries.filter((countryObj) => {
-			return countryObj['name'].toLowerCase().startsWith(event.query.toLowerCase());
-		});
-		this.setState({ countrySuggestions: results });
-	}
+	// suggestCountry(event) {
+	// 	const countries = this.props.data['global_search']['countries']['country'];
+	// 	let results = countries.filter((countryObj) => {
+	// 		return countryObj['name'].toLowerCase().startsWith(event.query.toLowerCase());
+	// 	});
+	// 	this.setState({ countrySuggestions: results });
+	// }
 
 	changeInputTooltip = (tooltip) => {
 
 	}
+
+
+	suggestCountry(event) {
+		setTimeout(() => {
+			let results;
+			const countries = this.props.data['global_search']['countries']['country'];
+			if (event.query.length === 0) {
+				console.log("query is zero" + event.query);
+				results = [...countries];
+			}
+			else {
+				results = countries.filter((countryObj) => {
+					return countryObj['name'].toLowerCase().startsWith(event.query.toLowerCase());
+				});
+			}
+
+			this.setState({ countrySuggestions: results });
+		}, 250);
+	}
+
 
 	countryTemplate(option) {
 
@@ -570,15 +593,20 @@ export default class GlobalSrchFilters extends PureComponent {
 		var searchByValue = data['id']
 		var defaultPerspective = data['default_perspectives'].split(",");
 		var modes = data['default_search_mode'].split(",");
-		this.setState({ datamarts: this.getPerspectivess(defaultPerspective) });
-		this.setState({ modes: this.getSearchModes(modes) });
+
+		var datamarts = this.getPerspectivess(defaultPerspective);
+		var updateModes = this.getSearchModes(modes);
+		var isCountryVis = false;
 		//check and enable or disable country
 		if (data.hasOwnProperty("combination")) {
-			this.setState({ countryVisible: true });
-		} else {
-			this.setState({ countryVisible: false });
+			isCountryVis = true;
 		}
-
+		this.setState({
+			datamarts: datamarts, countrySelected: "", modes: updateModes,
+			countryVisible: isCountryVis
+		});
+		//lets reset the earlier countries added
+		this.props.onCountryAdded("any");
 		//Lets send this selected filters out to the parent...
 		this.props.onFieldChanged(searchByValue);
 		this.props.onSearchModeChanged(modes);
@@ -601,11 +629,26 @@ export default class GlobalSrchFilters extends PureComponent {
 	}
 
 	//when user selects country..we fire callback to parent with the selected value
+	/**
+	 * only when user selects avalue from suggestions,we will get real value,so check for undefine
+	 * condition,if it is not undefined means user selected a country
+	 * else case: we not bothered,becuse user is still searching for countries
+	 * NOte: We need to take care of emptyingthe value
+	 * example user selected india and cleared thet,hence check zero length
+	 * and update with "any"
+
+	 */
 	handleCountryChange = (e) => {
-		//	const JSON = require('circular-json');
-		//console.log("country value is:" + JSON.stringify(e) + e.code + e.name + e.label);
-		this.setState({ countrySelected: e.name });
-		this.props.onCountryAdded(e.value);
+
+		//console.log("country value is:" + e.value.length + e.value + e.value['code']);
+
+		this.setState({ countrySelected: e.value });
+
+		if (typeof e.value['code'] != 'undefined') {
+			this.props.onCountryAdded(e.value['code']);
+		} else if (e.value.length == 0) {
+			this.props.onCountryAdded("any");
+		}
 	}
 
 	//when user changes the Perspective we fire callback to parent with the selected value
@@ -648,7 +691,7 @@ export default class GlobalSrchFilters extends PureComponent {
 			secondaryAdditionalInfo: []
 		});
 		//check the length and read config and show the primary additioanl info
-		console.log("length" + this.state.datamarts.length);
+		//console.log("length" + this.state.datamarts.length);
 		if (this.state.datamarts.length == 1) {
 			//Form config get the perspective wise additional filters info
 			//loop and check is any info exists for current perspetcive
@@ -697,7 +740,7 @@ export default class GlobalSrchFilters extends PureComponent {
 
 	//when user changes the Secondary additioanl info
 	handleSecondAdditionalInfoChange = (e) => {
-		console.log("Secondary additonal info is:" + JSON.stringify(e.value));
+		//console.log("Secondary additonal info is:" + JSON.stringify(e.value));
 		this.setState({ selectedSecondaryAdditionalInfo: e.value }, this.onAdditionaInfoSelected());
 		//NOw we need to send this value along with primary value to parent toinclude in search request....
 
@@ -749,7 +792,7 @@ export default class GlobalSrchFilters extends PureComponent {
 
 			<Row type="flex" justify="start" align="middle">
 
-				<Col span={6}>
+				<Col span={5}>
 					<Row>
 						<small >Search By: </small>
 					</Row>
@@ -758,7 +801,7 @@ export default class GlobalSrchFilters extends PureComponent {
 					</Row>
 				</Col>
 
-				<Col span={4}>
+				<Col span={3}>
 					<Row>
 						<small >Modes: </small>
 					</Row>
@@ -768,7 +811,7 @@ export default class GlobalSrchFilters extends PureComponent {
 				</Col>
 
 
-				<Col span={4}>
+				<Col span={5}>
 					<Row>
 						<small >Country: </small>
 					</Row>
