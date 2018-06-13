@@ -108,18 +108,20 @@ export function getPreProcessData(compInfo) {
 	var processedData = {};
 	if (compInfo) {
 		var compData = compInfo['data'];
-		var viewPart = compData['view'];
-		//Lets add only measure keys and full measure to the object...only measures keys will be helpful to define fileds in chart
-		if (viewPart.hasOwnProperty(AggConst.MEASURES)) {
-			processedData.measures = getMeasureKeys(viewPart[AggConst.MEASURES]);
-			processedData.measuresInfo = viewPart[AggConst.MEASURES];
+		if (compData.hasOwnProperty('view')) {
+			var viewPart = compData['view'];
+			//Lets add only measure keys and full measure to the object...only measures keys will be helpful to define fileds in chart
+			if (viewPart.hasOwnProperty(AggConst.MEASURES)) {
+				processedData.measures = getMeasureKeys(viewPart[AggConst.MEASURES]);
+				processedData.measuresInfo = viewPart[AggConst.MEASURES];
+			}
+			processedData.dimensions = viewPart.hasOwnProperty(AggConst.DIMENSIONS) ? viewPart[AggConst.DIMENSIONS] : [];
+			processedData[AggConst.MSR_VAL_FORMATS] = viewPart.hasOwnProperty(AggConst.MSR_VAL_FORMATS) ? viewPart[AggConst.MSR_VAL_FORMATS] : {};
+			// processedData.title = getTitle(compInfo[AggConst.DIMENSIONS], compInfo[AggConst.MEASURES]);
+			// processedData.field = processedData.measures[0].id;
+			processedData.labelField = "key";
+			processedData.chartData = compData[AggConst.AGGS_DATA][processedData.dimensions[0]];
 		}
-		processedData.dimensions = viewPart.hasOwnProperty(AggConst.DIMENSIONS) ? viewPart[AggConst.DIMENSIONS] : [];
-		processedData[AggConst.MSR_VAL_FORMATS] = viewPart.hasOwnProperty(AggConst.MSR_VAL_FORMATS) ? viewPart[AggConst.MSR_VAL_FORMATS] : {};
-		// processedData.title = getTitle(compInfo[AggConst.DIMENSIONS], compInfo[AggConst.MEASURES]);
-		// processedData.field = processedData.measures[0].id;
-		processedData.labelField = "key";
-		processedData.chartData = compData[AggConst.AGGS_DATA][processedData.dimensions[0]];
 	}
 	console.log("preprocessed Data" + JSON.stringify(processedData.measures));
 	return processedData;

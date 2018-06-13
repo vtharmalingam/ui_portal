@@ -3691,8 +3691,8 @@ function getFormattedValue(formatSource, lookupkey, value) {
 //Based on given perspective get the inisghtlookup shortcuts..
 export function getNestedDataGrid(data) {
     var compData = data['data'];
-    
-    if ( compData.hasOwnProperty('view') &&compData['view'].hasOwnProperty('measures')) {
+
+    if (compData.hasOwnProperty('view') && compData['view'].hasOwnProperty('measures')) {
         var viewPart = compData['view'];
         var measures = viewPart['measures'];
         var dimensions = viewPart['dimensions'];
@@ -4129,24 +4129,30 @@ export function getNestedFormattedData(data) {
 }
 
 export function getFormattedObject(data) {
-    //data comes as object..dt
-    data['data'] = {};
-    for (var key in data) {
-        console.log("typeof data[key]" + typeof data[key])
-        if (typeof data[key] === 'string' || typeof data[key] === 'number') {
-            data['data'][key] = data[key];
-        }
-        else {
-            console.log("internal aray");
-            Array.prototype.forEach.call(data[key], nestedObj => {
-                getFormattedObject(nestedObj);
-            });
-            // var arrData = data[key];
-            // console.log("internal aray:"+JSON.stringify(arr));
+    try {
+        //data comes as object..dt
+        data['data'] = {};
+        for (var key in data) {
+            console.log("typeof data[key]" + typeof data[key])
+            if (typeof data[key] === 'string' || typeof data[key] === 'number') {
+                data['data'][key] = data[key];
+            }
+            else {
+                console.log("internal aray");
+                Array.prototype.forEach.call(data[key], nestedObj => {
+                    getFormattedObject(nestedObj);
+                });
+                // var arrData = data[key];
+                // console.log("internal aray:"+JSON.stringify(arr));
 
+            }
         }
+        return data;
+
+    } catch (err) {
+        console.log("Error while generating nested grid"+err.message)
     }
-    return data;
+
 }
 
 //converts dimensions as children....

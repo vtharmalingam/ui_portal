@@ -153,7 +153,7 @@ export default class Line extends Component {
     {/* formatter(text, item, index) {}, */ }
     return (
       <div>
-        <Chart height={window.innerHeight / 1.5} data={dv} forceFit scale={scale}>
+        <Chart  data={dv} forceFit scale={scale}>
           <Axis name="key" label={{ formatter: this.dimAxisformatter }} />
           <Axis name="measurevalue" label={{ formatter: this.measuresAxisformatter }} />
           <Legend />
