@@ -123,9 +123,9 @@ export default class InsightVisuals extends PureComponent {
           )
         }
         );
-        console.log(JSON.stringify("Visuals:::;" + visuals));
+        // console.log(JSON.stringify("Visuals:::;" + visuals));
         return (
-          <Tabs defaultActiveKey="1" tabPosition="right" onChange={this.onChange} style={{ width: '70px' }} >
+          <Tabs defaultActiveKey="1" tabPosition="left" onChange={this.onChange}  >
             {tabs}
           </Tabs>
         )
@@ -165,12 +165,14 @@ export default class InsightVisuals extends PureComponent {
       <div className={styles.container}>
 
         <Row>
-          <Col span={18}>
-            <small style={{fontWeight:'bold'}}>{insightLkpTitle}  </small>
+          <Col span={16}>
+            <small style={{ fontWeight: 'bold' }}>{insightLkpTitle}  </small>
           </Col>
           <Row type="flex" justify="end">
             <Col style={{ backgroundColor: "red", color: "aliceblue" }}>
-              <small style={{fontWeight:'bold'}}>{this.state.showCountry ? "Worldwide Information" : "Country Specific Information"}  </small>
+              <small style={{ fontWeight: 'bold' }}>
+                {this.state.showCountry ? "Worldwide Information" : "Country Specific Information"}
+              </small>
             </Col>
           </Row>
         </Row>
@@ -181,7 +183,46 @@ export default class InsightVisuals extends PureComponent {
           </div>
         </div> */}
 
-        <div className={[styles.horizontalContainer, styles.visualOptionsContainer].join(' ')}>
+
+        <Row justify="start" type="flex">
+          {/* First col is for worlwide and multi visuals */}
+          <Col span={4}>
+
+            <Row justify="end" type="flex" className={this.state.showWW ? styles.show : styles.hide} >
+              <img style={{ cursor: "pointer", marginLeft: '27px' }}
+                src={globalImg} onClick={this.worldwideClick} title="To see worldwide information"
+              />
+            </Row>
+
+            <Row className={this.state.showCountry ? styles.show : styles.hide} >
+              <img style={{ cursor: "pointer", marginLeft: '27px' }}
+                src={countryImge} onClick={this.countrywideClick} title="To see countrywide information"
+              />
+            </Row>
+
+            <Row >
+              {this.state.multivisuals}
+            </Row>
+
+          </Col>
+
+          <Col span={10} >
+           
+              {this.state.componentsToShow}
+           
+
+          </Col>
+
+
+          <Col span={10}>
+          {this.state.componentsToShow}
+          </Col>
+
+        </Row>
+
+
+
+        {/* <div className={[styles.horizontalContainer, styles.visualOptionsContainer].join(' ')}>
           <img className={this.state.showWW ? styles.show : styles.hide} style={{ cursor: "pointer" }}
             src={globalImg} onClick={this.worldwideClick} title="To see worldwide information"
           />
@@ -192,7 +233,7 @@ export default class InsightVisuals extends PureComponent {
         </div>
         <div className={[styles.horizontalContainer, styles.visualsContainer].join(' ')}>
           {this.state.componentsToShow}
-        </div>
+        </div> */}
       </div>
 
     );
