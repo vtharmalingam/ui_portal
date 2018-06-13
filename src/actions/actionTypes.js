@@ -38,6 +38,10 @@ export const GET_PERSPECTIVE_CONFIG_XML = 'search_org/getPerspectiveConfigXML';
 //To get global search config...
 export const GET_GLOBAL_SEARCH_CONFIG = 'search_org/geGlobalSearchConfig';
 
+//To get global search config...
+export const RESET_GLOBAL_SEARCH = 'search_org/resetGlobalSearch';
+
+
 
 //To init shortcuts for each datamart
 //export const INIT_DATAMART_SHORTCUTS = 'search_org/initDatamartShortcts';
