@@ -40,6 +40,7 @@ export default class GlobalSearchContainer extends Component {
       type: actionTypes.GET_GLOBAL_SEARCH_CONFIG,
     });
 
+
     showGlobalSearch: true,
       this.props.dispatch({
         type: 'search_org/fetchInsLkpMetaData',
@@ -57,6 +58,15 @@ export default class GlobalSearchContainer extends Component {
     }
 
   }
+
+  //Lets clear the stuff like hiding the existing reults...
+  componentWillUnmount() {
+    this.props.dispatch({
+      type: actionTypes.RESET_GLOBAL_SEARCH,
+    });
+    window.removeEventListener('resize', this.resize);
+  }
+
 
   @Debounce(600)
   triggerResizeEvent() { // eslint-disable-line
@@ -102,7 +112,7 @@ export default class GlobalSearchContainer extends Component {
       var searchReq = {
         "enable_recommender": "true", "additional_filter": globalSrchFilter_additional_filter,
         "search_criteria": {
-          "country": "any",
+          "country": globalSrchFilter_countries,
           "field": globalSrchFilter_field,
           "value": value,
           "search_mode": globalSrchFilter_searchModes
@@ -175,6 +185,22 @@ export default class GlobalSearchContainer extends Component {
         }
       });
   }
+
+  
+  //when user adds country..
+  onCountryAdded = (data) => {
+     //console.log("On Country Added Method alled" + data);
+    //check if data is null,then we have to set country as "any"
+    
+    this.props.dispatch(
+      {
+        type: actionTypes.UPDATE_GLOBAL_SEARCH_FILTERS,
+        payload: {
+          "globalSrchFilter_countries": data
+        }
+      });
+  }
+  
 
   //when user adds additional informaton..
   onAdditionalInfoAdded = (data) => {
@@ -310,12 +336,10 @@ export default class GlobalSearchContainer extends Component {
                 field={globalSrchFilter_field}
                 perspectives={globalSrchFilter_perspectives}
                 searchModes={globalSrchFilter_searchModes}
-                countries={globalSrchFilter_countries}
                 onFieldChanged={this.onFieldChanged}
                 onPerspectiveChanged={this.onPerspectiveChanged}
                 onTooltipChanged={this.onTooltipChanged}
                 onSearchModeChanged={this.onSearchModeChanged}
-               
                 onCountryAdded={this.onCountryAdded}
                 onAdditionalInfoAdded={this.onAdditionalInfoAdded}
                 mode="horizontal" />
