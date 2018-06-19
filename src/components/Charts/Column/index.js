@@ -59,44 +59,105 @@ export default class Column extends Component {
     this.node = n;
   };
 
-//This prepares AliasNames and formatting and etc...
-getMsrFormatLable = (text) => {
-  const { dimensions, measures, measureValFormats } = this.props;
-  var formatsObj = chartDataPreprocessor.getMeasureformats(measureValFormats, measures[0]);
-  console.log("formatsObj" + JSON.stringify(formatsObj));
-  //date format....
-  if (formatsObj['type'] == "date") {
-    text = utils.convertStringToDate(text);
-    return text;
+  /**
+   * 
+   * Methods related to tooltip,legends and axis formatters
+   *
+   */
+
+
+  //Formatter for Legend....
+  legnedFormatter = (text) => {
+    const { measures, measureValFormats } = this.props;
+    var formatsObj = chartDataPreprocessor.getMeasureformats(measureValFormats, text);
+    return formatsObj['desc'];
+  };
+
+
+  /**
+   * Tooltip formatting:
+   * We take Dimension name,measure name and measure value
+   * and format them using measure formats description returned by back-end
+   */
+  tooltipFormat = [
+    'key*measurekey*measurevalue',
+    (dim, msr, msrval) => ({
+      title: dim,
+      name: this.getToolTipFormat(msr, msrval, "label"),
+      value: this.getToolTipFormat(msr, msrval, "value"),
+    }),
+
+  ];
+
+  //This prepares Tooltip format for the given measure...
+  /**
+   * Based on mode,we return measures formatted label or its value
+   */
+  getToolTipFormat = (measure, measureValue, mode) => {
+
+    const { dimensions, measures, measureValFormats } = this.props;
+    var formatsObj = chartDataPreprocessor.getMeasureformats(measureValFormats, measure);
+    // console.log("formatsObj" + JSON.stringify(formatsObj));
+    if (mode == 'label') {//we need only measure label....
+      return formatsObj['desc']
+    }
+    else {//we need formatted measures value....
+      //date format....
+      if (formatsObj['type'] == "date") {
+        measureValue = utils.convertStringToDate(measureValue);
+        return measureValue;
+      }
+      //Currency symbol..
+      else if (formatsObj['symbol'].length > 0) {
+        measureValue = chartDataPreprocessor.shortenLargeNumber(measureValue);
+        console.log("formatsObjPassed case:" + JSON.stringify(measureValue));
+        return formatsObj['symbol'] + measureValue;
+      }//normal number format..
+      else {
+        return chartDataPreprocessor.shortenLargeNumber(measureValue);
+      }
+      return measureValue
+    }
+
   }
-  //Currency symbol..
-  else if (formatsObj['symbol'].length > 0) {
-    text = chartDataPreprocessor.shortenLargeNumber(text);
-    console.log("formatsObjPassed case:" + JSON.stringify(text));
-    return formatsObj['symbol'] + text;
-  }//normal number format..
-  else {
-    return chartDataPreprocessor.shortenLargeNumber(text);
+  //This prepares AliasNames and formatting and etc...
+  getMsrFormatLable = (text) => {
+    const { dimensions, measures, measureValFormats } = this.props;
+    var formatsObj = chartDataPreprocessor.getMeasureformats(measureValFormats, measures[0]);
+    console.log("formatsObj" + JSON.stringify(formatsObj));
+    //date format....
+    if (formatsObj['type'] == "date") {
+      text = utils.convertStringToDate(text);
+      return text;
+    }
+    //Currency symbol..
+    else if (formatsObj['symbol'].length > 0) {
+      text = chartDataPreprocessor.shortenLargeNumber(text);
+      console.log("formatsObjPassed case:" + JSON.stringify(text));
+      return formatsObj['symbol'] + text;
+    }//normal number format..
+    else {
+      return chartDataPreprocessor.shortenLargeNumber(text);
+    }
+    return text
   }
-  return text
-
-}
 
 
-//This prepares AliasNames and formatting and etc...
-getDimFormatLable = (text) => {
+  //This prepares AliasNames and formatting and etc...
+  getDimFormatLable = (text) => {
     return chartDataPreprocessor.getDimFormatLable(text);
-}
+  }
+
+  measuresAxisformatter = (text, item, index) => {
+    return this.getMsrFormatLable(text);
+  }
+
+  dimAxisformatter = (text, item, index) => {
+    return this.getDimFormatLable(text);
+  }
 
 
-measuresAxisformatter = (text, item, index) => {
- return this.getMsrFormatLable(text);
-}
-
-
-dimAxisformatter = (text, item, index) => {
-  return this.getDimFormatLable(text);
- }
+  /*************************************************************************** */
 
 
 
@@ -105,25 +166,27 @@ dimAxisformatter = (text, item, index) => {
     //get the properties from this use dims and measures and form columns and etc, conigurations...
     const { dimensions, measures, measureValFormats } = this.props;
 
-    //Get the cols
     const ds = new DataSet();
     const dv = ds.createView().source(data);
 
     dv.transform({
       type: 'fold',
       fields: measures,
-      key: 'key',
-      value: 'value',
+      key: 'measurekey',
+      value: 'measurevalue',
     });
 
+   // const scale = this.getScale();
     return (
       <div>
-        <Chart height={window.innerHeight/1.5} data={dv}  forceFit >
-        <Axis name="key" label={{ formatter: this.dimAxisformatter }} />
-          <Axis name="value" label={{ formatter: this.measuresAxisformatter }} />
-          <Legend />
+        <Chart height={window.innerHeight / 1.5} data={dv} forceFit>
+          <Axis name="key" label={{ formatter: this.dimAxisformatter }} />
+          <Axis name="measurevalue" label={{ formatter: this.measuresAxisformatter }} />
+          <Legend itemFormatter={this.legnedFormatter} />
           <Tooltip crosshairs={{ type: "y" }} />
-          <Geom type='interval' position="key*value" color={'key'} adjust={[{ type: 'dodge', marginRatio: 1 / 32 }]} />
+          <Geom type="interval" position="key*measurevalue"
+            color={'measurekey'} tooltip={this.tooltipFormat}
+            adjust={[{ type: ['stack'], marginRatio: 1 / 32 }]} />
         </Chart>
       </div>
     );

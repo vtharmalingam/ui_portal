@@ -3415,6 +3415,7 @@ import Pie from '../components/Charts/Pie'
 import Radar from '../components/Charts/Radar'
 import ColumnChart from '../components/Charts/Column'
 import LineChart from '../components/Charts/Line'
+import TreeMap from '../components/Charts/TreeMap'
 import * as ChartDataPrpeProc from './ChartsDataPreprocessor'
 import GridComp from '../components/Charts/Grid'
 import { TableHeaderColumn } from 'react-bootstrap-table';
@@ -3474,6 +3475,9 @@ export function getUiCompbyTypeNData(type, data) {
     }
     else if (type === 'category_icon') {
         return getKPICharts(data);
+    }
+    else if (type === 'treemap') {
+        return getTreeMapComp(data);
     }
 }
 
@@ -3554,6 +3558,21 @@ export function getFunnelComp(data) {
     )
     return [];
 }
+
+
+//Prepare Treemap chart and export it
+export function getTreeMapComp(data) {
+    var formattedData = ChartDataPrpeProc.getPreProcessData(data);
+    return (
+        <TreeMap data={formattedData['chartData']}
+            measures={formattedData['measures']}
+            dimensions={formattedData['dimensions']}
+            measureValFormats={formattedData['measures_value_formats']}
+        />
+    )
+    return [];
+}
+
 
 //Returns the line chart..
 export function getLineComponent(data) {

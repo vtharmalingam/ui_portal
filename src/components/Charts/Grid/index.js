@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+//import 'bootstrap/dist/css/bootstrap.min.css';
 import Debounce from 'lodash-decorators/debounce';
 import Bind from 'lodash-decorators/bind';
 import autoHeight from '../autoHeight';
