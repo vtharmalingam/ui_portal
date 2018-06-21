@@ -48,9 +48,8 @@ export default class GlobalSrchSearchResults extends PureComponent {
     padding: 1,
     paddingLeft: 1,
     title: {
-      fontSize: 1,
+      fontSize: 11,
       fontWeight: 'bold',
-      display: 'none',
       padding: 1
     },
     subtitle: {
@@ -106,7 +105,7 @@ export default class GlobalSrchSearchResults extends PureComponent {
     return (
       <div
         className={className}
-        style={{ ...style, display: "block", background: "black" }}
+        style={{ ...style, display: "block", background: "blue" }}
         onClick={onClick}
       />
     );
@@ -117,7 +116,7 @@ export default class GlobalSrchSearchResults extends PureComponent {
     return (
       <div
         className={className}
-        style={{ ...style, display: "block", background: "black" }}
+        style={{ ...style, display: "block", background: "blue" }}
         onClick={onClick}
       />
     );

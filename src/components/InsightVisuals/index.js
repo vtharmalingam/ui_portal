@@ -23,23 +23,27 @@ export default class InsightVisuals extends PureComponent {
     insightLookupData: {},
     onWorldwideClick: () => { },
     onCountrywideClick: () => { },
-    showWWByDefault: Boolean
+    showWWByDefault: Boolean,
+    showDefaultVisual: Boolean,
+    insightLkpTitle: "",
   };
 
   static propTypes = {
     className: PropTypes.string,
     showWWByDefault: PropTypes.bool,
+    showDefaultVisual: PropTypes.bool,
     insightLookupData: PropTypes.object,
     selectedItemData: PropTypes.object,
     onWorldwideClick: PropTypes.func,
     onCountrywideClick: PropTypes.func,
+    insightLkpTitle: PropTypes.string,
   };
 
   constructor(props) {
     super(props);
     this.state = {
       componentsToShow: [], multivisuals: [],
-      showWW: true, showCountry: false
+      showWW: true, showCountry: false, currentVisual: ""
     };
   }
 
@@ -55,7 +59,7 @@ export default class InsightVisuals extends PureComponent {
 
   //If the data is new,then we calculate the visuals and shows the visuals..
   componentWillReceiveProps(nextProps) {
-    const { insightLookupData, showWWByDefault } = this.props;
+    const { insightLookupData, showWWByDefault, showDefaultVisual } = this.props;
     //This showWWByDefault is to revert back to worldwide incase new search is happening
     //TODO:some times our json is unable to read by javascript hence using circula-json..any other solution??
     const JSON = require('circular-json');
@@ -64,10 +68,18 @@ export default class InsightVisuals extends PureComponent {
       if (showWWByDefault) {//This means user has opted for new search,hence resetting to ww by default
         this.setState({ showWW: true, showCountry: false });
       }
+      var compToShow = [];
 
+      //showDefaultVisual true..this means  component receiving new data,so no need to show previous visual
+      if (!showDefaultVisual && this.state.currentVisual.length > 0) {
+        compToShow = getUiCompbyTypeNData(this.state.currentVisual, nextProps.insightLookupData);
+      } else {
+        compToShow = getUiComp(nextProps.insightLookupData);
+      }
+      var multivis = this.addMultipleVisuals(nextProps.insightLookupData);
       this.setState({
-        multivisuals: this.addMultipleVisuals(nextProps.insightLookupData),
-        componentsToShow: getUiComp(nextProps.insightLookupData),
+        multivisuals: multivis,
+        componentsToShow: compToShow,
       });
     }
   }
@@ -78,8 +90,14 @@ export default class InsightVisuals extends PureComponent {
     const { insightLookupData } = this.props;
     var visual = value;
     // console.log("clicked item value is" + value);
+    //Important:
+    /**
+     * Store the visual,which user has selected,so that we can show the same
+     * visual when user press worldwide or country
+     */
+    var comp = getUiCompbyTypeNData(visual, insightLookupData);
     this.setState({
-      componentsToShow: getUiCompbyTypeNData(visual, insightLookupData),
+      componentsToShow: comp, currentVisual: visual
     })
   }
 
@@ -105,9 +123,9 @@ export default class InsightVisuals extends PureComponent {
           )
         }
         );
-        console.log(JSON.stringify("Visuals:::;" + visuals));
+        // console.log(JSON.stringify("Visuals:::;" + visuals));
         return (
-          <Tabs defaultActiveKey="1" tabPosition="right" onChange={this.onChange} style={{ width: '70px' }} >
+          <Tabs defaultActiveKey="1" tabPosition="left" onChange={this.onChange}  >
             {tabs}
           </Tabs>
         )
@@ -141,17 +159,70 @@ export default class InsightVisuals extends PureComponent {
   }
 
   render() {
+    const { insightLkpTitle } = this.props;
     return (
 
       <div className={styles.container}>
-     
-      <div className={styles.resultScope}>
+
+        <Row>
+          <Col span={16}>
+            <small style={{ fontWeight: 'bold' }}>{insightLkpTitle}  </small>
+          </Col>
+          <Row type="flex" justify="end">
+            <Col style={{ backgroundColor: "red", color: "aliceblue" }}>
+              <small style={{ fontWeight: 'bold' }}>
+                {this.state.showCountry ? "Worldwide Information" : "Country Specific Information"}
+              </small>
+            </Col>
+          </Row>
+        </Row>
+        {/* <div className={styles.resultScope}>
           <div className={styles.resultScopeHeading}>
-              <span>{this.state.showCountry?"Worldwide Information":"Country Specific Information"}  </span>
-            </div>
-      </div>
-     
-        <div className={[styles.horizontalContainer, styles.visualOptionsContainer].join(' ')}>
+          <small>{insightLkpTitle}  </small>
+            <small>{this.state.showCountry ? "Worldwide Information" : "Country Specific Information"}  </small>
+          </div>
+        </div> */}
+
+
+        <Row justify="start" type="flex">
+          {/* First col is for worlwide and multi visuals */}
+          <Col span={4}>
+
+            <Row justify="end" type="flex" className={this.state.showWW ? styles.show : styles.hide} >
+              <img style={{ cursor: "pointer", marginLeft: '27px' }}
+                src={globalImg} onClick={this.worldwideClick} title="To see worldwide information"
+              />
+            </Row>
+
+            <Row className={this.state.showCountry ? styles.show : styles.hide} >
+              <img style={{ cursor: "pointer", marginLeft: '27px' }}
+                src={countryImge} onClick={this.countrywideClick} title="To see countrywide information"
+              />
+            </Row>
+
+            <Row >
+              {this.state.multivisuals}
+            </Row>
+
+          </Col>
+
+          <Col span={10} >
+           
+              {this.state.componentsToShow}
+           
+
+          </Col>
+
+
+          <Col span={10}>
+          {this.state.componentsToShow}
+          </Col>
+
+        </Row>
+
+
+
+        {/* <div className={[styles.horizontalContainer, styles.visualOptionsContainer].join(' ')}>
           <img className={this.state.showWW ? styles.show : styles.hide} style={{ cursor: "pointer" }}
             src={globalImg} onClick={this.worldwideClick} title="To see worldwide information"
           />
@@ -162,7 +233,7 @@ export default class InsightVisuals extends PureComponent {
         </div>
         <div className={[styles.horizontalContainer, styles.visualsContainer].join(' ')}>
           {this.state.componentsToShow}
-        </div>
+        </div> */}
       </div>
 
     );

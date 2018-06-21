@@ -11,7 +11,6 @@ import { connect } from 'dva';
 function renderOption(item) {
   return (
     <Option key={item.primary_name}>
-        {item.primary_name}
       <span className="global-search-item-count"> {item.primary_name}</span>
     </Option>
 
@@ -32,15 +31,18 @@ class SearchInput extends React.Component {
   }
   // handle the organization name suggestions
   handleSearchSuggest=(value) => {
+    const { onSuggestionReq } = this.props;
     if(!!value){
-     
      // console.log("Find Suggestion for this String: "+value);
       this.setState({textEntered : value});//TODO: Stupid way of doing..but need to keep moving...
-
-      this.props.dispatch({
-        type: actionTypes.FETCH_SEARCH_SUGGEST,
-        payload: {"value": value}
-      });
+      onSuggestionReq(value)
+      //We disabled this directly ineracting with model,because,we need to enable suggestions only
+      //when searh by orgname..
+      
+      // this.props.dispatch({
+      //   type: actionTypes.FETCH_SEARCH_SUGGEST,
+      //   payload: {"value": value}
+      // });
     }
   }
  
@@ -55,29 +57,26 @@ class SearchInput extends React.Component {
   render() {
     
     const {
-      onChange, onSelect,onSearch,onBtnClick,placeholderText
+      onChange, onSelect,onSearch,onBtnClick,placeholderText,searchSuggestResults,handleSearchSuggest
       } = this.props;
 
-    
-    const { search_org, loading } = this.props; //Making search_org model as property
-    const { searchSuggestResults } = search_org;//we need only few props from state
- 
     return (
       <div className="global-search-wrapper">
         <AutoComplete
           className="global-search"
           size="large"
           style={{ width: '100%' }}
-          dataSource={searchSuggestResults.length > 0?searchSuggestResults.map(renderOption):[]}
+          dataSource={searchSuggestResults && searchSuggestResults.length > 0?searchSuggestResults.map(renderOption):[]}
           onChange={this.handleSearchSuggest}
           onSelect={onSelect}          
           onSearch={onSearch}          
           placeholder={placeholderText}
           optionLabelProp="text"
+         
           
         >
-       
-          <Input
+          {/* Let us register the onkeypress events to recognise  enter key pressed */}
+          <Input onKeyPress={event => {if (event.key === 'Enter') {this.onBtnClick()}}}
             suffix={(
               <Button className="search-btn" size="large" type="primary" onClick={this.onBtnClick}>
                 <Icon type="search" />

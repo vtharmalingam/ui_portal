@@ -11,8 +11,10 @@ import * as utils from '../../utils/utils';
 import Debounce from 'lodash-decorators/debounce';
 import InsightVisualComponent from '../../components/InsightVisuals';
 import { getNestedFormattedData } from '../../utils/UICompGen';
+import { ENGINE_METHOD_DIGESTS } from 'constants';
 
 /**
+ * Comments added:
  * This is the global search container component.
  * This handles all the communications like,bringing search results,
  * handling lookup selections and getting rspective results
@@ -27,7 +29,7 @@ export default class GlobalSearchContainer extends Component {
   //internal state to show hide few internal controls
   state = {
     visible: false, showGlobalSearch: true,
-    showWWByDefault: true, placeholderText: ""
+    showWWByDefault: true, placeholderText: "",showDefaultVisual:true,insightLkpTitle:""
   };
 
 
@@ -37,6 +39,7 @@ export default class GlobalSearchContainer extends Component {
     this.props.dispatch({
       type: actionTypes.GET_GLOBAL_SEARCH_CONFIG,
     });
+
 
     showGlobalSearch: true,
       this.props.dispatch({
@@ -56,6 +59,15 @@ export default class GlobalSearchContainer extends Component {
 
   }
 
+  //Lets clear the stuff like hiding the existing reults...
+  componentWillUnmount() {
+    this.props.dispatch({
+      type: actionTypes.RESET_GLOBAL_SEARCH,
+    });
+    window.removeEventListener('resize', this.resize);
+  }
+
+
   @Debounce(600)
   triggerResizeEvent() { // eslint-disable-line
     const event = document.createEvent('HTMLEvents');
@@ -63,9 +75,30 @@ export default class GlobalSearchContainer extends Component {
     window.dispatchEvent(event);
   }
 
+  // handle the organization name suggestions
+  handleSearchSuggestion = (value) => {
+    //Importnat: We need to enable search suggestions only when user has selected the
+    //search by org,in other case we need to disable this feature...
+    const { search_org } = this.props;
+    const { globalSrchFilter_field } = search_org;
+    if (globalSrchFilter_field == 'n') {//only for org names we need to display this....
+      if (!!value) {
+        this.props.dispatch({
+          type: actionTypes.FETCH_SEARCH_SUGGEST,
+          payload: { "value": value }
+        });
+      }
+    }
+  }
+
+
+
+
+
 
   //User entered search item in global search search box, and interested to see details...
   handleSearch = (value) => {
+    //console.log("enter button presssed");
     const { search_org, loading } = this.props; //Making search_org model as property
     const { globalSrchFilter_field, globalSrchFilter_perspectives, globalSrchFilter_searchModes,
       globalSrchFilter_additional_filter, globalSrchFilter_countries, perspectiveConfigs } = search_org;
@@ -79,7 +112,7 @@ export default class GlobalSearchContainer extends Component {
       var searchReq = {
         "enable_recommender": "true", "additional_filter": globalSrchFilter_additional_filter,
         "search_criteria": {
-          "country": "any",
+          "country": globalSrchFilter_countries,
           "field": globalSrchFilter_field,
           "value": value,
           "search_mode": globalSrchFilter_searchModes
@@ -88,7 +121,7 @@ export default class GlobalSearchContainer extends Component {
         "perspectives": globalSrchFilter_perspectives,
         "size": 50
       }
-      //console.log("Globalsearch request is" + JSON.stringify(searchReq));
+      console.log("Globalsearch request is" + JSON.stringify(searchReq));
       this.props.dispatch({
         type: actionTypes.FETCH_GLOBAL_SEARCH_RESULT,
         payload: searchReq,
@@ -153,9 +186,25 @@ export default class GlobalSearchContainer extends Component {
       });
   }
 
+  
+  //when user adds country..
+  onCountryAdded = (data) => {
+     //console.log("On Country Added Method alled" + data);
+    //check if data is null,then we have to set country as "any"
+    
+    this.props.dispatch(
+      {
+        type: actionTypes.UPDATE_GLOBAL_SEARCH_FILTERS,
+        payload: {
+          "globalSrchFilter_countries": data
+        }
+      });
+  }
+  
+
   //when user adds additional informaton..
   onAdditionalInfoAdded = (data) => {
-    console.log("Additionalinfo" + JSON.stringify(data));
+    // console.log("Additionalinfo" + JSON.stringify(data));
     //Making search_org model as property
     this.props.dispatch(
       {
@@ -182,11 +231,12 @@ export default class GlobalSearchContainer extends Component {
   //This is ike initial reset to ww then interanl css swapping
   worldwideClick = () => {
     this.fireInsLookupRequest("ww");
-    this.setState({ showWWByDefault: false });
+    this.setState({ showWWByDefault: false,showDefaultVisual:false });
   }
 
   //when user clicks on country wide click
   countrywideClick = () => {
+    this.setState({ showDefaultVisual:false });
     this.fireInsLookupRequest("");
   }
 
@@ -221,7 +271,7 @@ export default class GlobalSearchContainer extends Component {
 
   onLkpOptionSelected = (selectionItem) => {
     const { search_org } = this.props;
-
+   // insightLkpTitle
     var lookupObj = selectionItem['lookupData'];
     console.log("lOOKUP OBJECT IS " + JSON.stringify(lookupObj));
     var onHoverItem = selectionItem['selectedItemData'];
@@ -237,7 +287,7 @@ export default class GlobalSearchContainer extends Component {
     //so that if we click on worlwide we can easily access respective values and get the worlwide results
     this.init_insight_lookup(data);
     //as user is opted for new lookup convert icon to worldwide
-    this.setState({ showWWByDefault: true });
+    this.setState({ showWWByDefault: true,showDefaultVisual:true,insightLkpTitle:lookupObj['label'] });
     //fetch now
     this.props.dispatch({
       type: actionTypes.FETCH_INSIGHT_LOOKUP,
@@ -272,7 +322,7 @@ export default class GlobalSearchContainer extends Component {
       inslkpShortcuts, globalSrchFilter_field,
       globalSrchFilter_perspectives, globalSrchFilter_searchModes,
       globalSrchFilter_countries, collapseInsLkups,
-      insight_lookup_data, globalSearchConfig, inslkupMetadata } = search_org;//we need only few props from state
+      insight_lookup_data, globalSearchConfig, inslkupMetadata,searchSuggestResults } = search_org;//we need only few props from state
 
     return (
       <div className={styles.globalParentContainer}>
@@ -286,7 +336,6 @@ export default class GlobalSearchContainer extends Component {
                 field={globalSrchFilter_field}
                 perspectives={globalSrchFilter_perspectives}
                 searchModes={globalSrchFilter_searchModes}
-                countries={globalSrchFilter_countries}
                 onFieldChanged={this.onFieldChanged}
                 onPerspectiveChanged={this.onPerspectiveChanged}
                 onTooltipChanged={this.onTooltipChanged}
@@ -301,21 +350,29 @@ export default class GlobalSearchContainer extends Component {
               onSelect={this.handleSearch}
               onBtnClick={this.handleSearch}
               placeholderText={this.state.placeholderText}
+              onSuggestionReq = {this.handleSearchSuggestion}
+              searchSuggestResults = {searchSuggestResults}
             />
           </div>
 
         </div>
 
-        <div className={styles.searchResultsContainer}>
-          <GlobalSrchSearchResults inslkupMetadata={inslkupMetadata} data={globalSrchResults}
-            onLkpOptionSelected={this.onLkpOptionSelected} />
-        </div>
+        <div className={styles.searchResultsParent}>
+        {
+         globalSrchResults && globalSrchResults.length > 0 && <div className={styles.searchResultsChild}  >
+            <GlobalSrchSearchResults inslkupMetadata={inslkupMetadata} data={globalSrchResults}
+              onLkpOptionSelected={this.onLkpOptionSelected} />
+          </div>
 
+        }
+</div>
         <div className={styles.visualsContainer}>
           <div className={utils.isObjectEmpty(insight_lookup_data) ? styles.hide : styles.show}>
             <InsightVisualComponent
               insightLookupData={insight_lookup_data} showWWByDefault={this.state.showWWByDefault}
-              onWorldwideClick={this.worldwideClick} onCountrywideClick={this.countrywideClick} />
+               insightLkpTitle={this.state.insightLkpTitle}
+               showDefaultVisual={this.state.showDefaultVisual} onWorldwideClick={this.worldwideClick} 
+               onCountrywideClick={this.countrywideClick} />
           </div>
         </div>
 

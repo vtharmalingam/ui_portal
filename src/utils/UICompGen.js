@@ -3415,6 +3415,7 @@ import Pie from '../components/Charts/Pie'
 import Radar from '../components/Charts/Radar'
 import ColumnChart from '../components/Charts/Column'
 import LineChart from '../components/Charts/Line'
+import TreeMap from '../components/Charts/TreeMap'
 import * as ChartDataPrpeProc from './ChartsDataPreprocessor'
 import GridComp from '../components/Charts/Grid'
 import { TableHeaderColumn } from 'react-bootstrap-table';
@@ -3474,6 +3475,9 @@ export function getUiCompbyTypeNData(type, data) {
     }
     else if (type === 'category_icon') {
         return getKPICharts(data);
+    }
+    else if (type === 'treemap') {
+        return getTreeMapComp(data);
     }
 }
 
@@ -3554,6 +3558,21 @@ export function getFunnelComp(data) {
     )
     return [];
 }
+
+
+//Prepare Treemap chart and export it
+export function getTreeMapComp(data) {
+    var formattedData = ChartDataPrpeProc.getPreProcessData(data);
+    return (
+        <TreeMap data={formattedData['chartData']}
+            measures={formattedData['measures']}
+            dimensions={formattedData['dimensions']}
+            measureValFormats={formattedData['measures_value_formats']}
+        />
+    )
+    return [];
+}
+
 
 //Returns the line chart..
 export function getLineComponent(data) {
@@ -3691,8 +3710,9 @@ function getFormattedValue(formatSource, lookupkey, value) {
 //Based on given perspective get the inisghtlookup shortcuts..
 export function getNestedDataGrid(data) {
     var compData = data['data'];
-    var viewPart = compData['view'];
-    if (viewPart.hasOwnProperty('measures')) {
+
+    if (compData.hasOwnProperty('view') && compData['view'].hasOwnProperty('measures')) {
+        var viewPart = compData['view'];
         var measures = viewPart['measures'];
         var dimensions = viewPart['dimensions'];
         var chartData = compData['aggs_data'][dimensions[0]];
@@ -4128,24 +4148,30 @@ export function getNestedFormattedData(data) {
 }
 
 export function getFormattedObject(data) {
-    //data comes as object..dt
-    data['data'] = {};
-    for (var key in data) {
-        console.log("typeof data[key]" + typeof data[key])
-        if (typeof data[key] === 'string' || typeof data[key] === 'number') {
-            data['data'][key] = data[key];
-        }
-        else {
-            console.log("internal aray");
-            Array.prototype.forEach.call(data[key], nestedObj => {
-                getFormattedObject(nestedObj);
-            });
-            // var arrData = data[key];
-            // console.log("internal aray:"+JSON.stringify(arr));
+    try {
+        //data comes as object..dt
+        data['data'] = {};
+        for (var key in data) {
+            console.log("typeof data[key]" + typeof data[key])
+            if (typeof data[key] === 'string' || typeof data[key] === 'number') {
+                data['data'][key] = data[key];
+            }
+            else {
+                console.log("internal aray");
+                Array.prototype.forEach.call(data[key], nestedObj => {
+                    getFormattedObject(nestedObj);
+                });
+                // var arrData = data[key];
+                // console.log("internal aray:"+JSON.stringify(arr));
 
+            }
         }
+        return data;
+
+    } catch (err) {
+        console.log("Error while generating nested grid"+err.message)
     }
-    return data;
+
 }
 
 //converts dimensions as children....

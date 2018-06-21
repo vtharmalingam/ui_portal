@@ -33,7 +33,7 @@ export default {
     globalSrchFilter_field: "n",//Default filter is name..
     globalSrchFilter_perspectives: ["enduser"],//Default is enduser..283
     globalSrchFilter_searchModes: ["default"],//Default is Contains..
-    globalSrchFilter_countries: ["any"],//Default is any
+    globalSrchFilter_countries: "any",//Default is any
     globalSrchFilter_additional_filter: {},//additional filters..
     collapseFilters: true,
     collapseSrchResults: false,
@@ -306,12 +306,14 @@ export default {
       };
     },
 
-    //here we need to read global search config xml and convert it to josn for better readability..
-    global_search_config(state, { payload }) {//Updates the state..
+    //here we need to reset global search results and visuals
+    //when will we use this:If user goes to other module and comes back to this...
+    resetGlobalSearch(state, { payload }) {//Updates the state..
       //console.log("xml converted is here"+ JSON.stringify(utils.xmlToJson(payload)));
       return {
         ...state,
-        globalSearchConfig: payload
+        globalSrchResults: [],
+        insight_lookup_data:{}
       };
     },
 

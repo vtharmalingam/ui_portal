@@ -66,6 +66,67 @@ export default class Line extends Component {
   }
 
 
+
+
+/**
+ * Methods related to tooltip,legends and axis formatters
+ */
+
+
+  //Formatter for Legend....
+  legnedFormatter = (text) => {
+    const { measures, measureValFormats } = this.props;
+    var formatsObj = chartDataPreprocessor.getMeasureformats(measureValFormats, text);
+    return formatsObj['desc'];
+  };
+
+
+  /**
+   * Tooltip formatting:
+   * We take Dimension name,measure name and measure value
+   * and format them using measure formats description returned by back-end
+   */
+  tooltipFormat = [
+    'key*measurekey*measurevalue',
+    (dim, msr, msrval) => ({
+      title: dim,
+      name: this.getToolTipFormat(msr, msrval, "label"),
+      value: this.getToolTipFormat(msr, msrval, "value"),
+    }),
+
+  ];
+
+  //This prepares Tooltip format for the given measure...
+  /**
+   * Based on mode,we return measures formatted label or its value
+   */
+  getToolTipFormat = (measure, measureValue, mode) => {
+
+    const { dimensions, measures, measureValFormats } = this.props;
+    var formatsObj = chartDataPreprocessor.getMeasureformats(measureValFormats, measure);
+    // console.log("formatsObj" + JSON.stringify(formatsObj));
+    if (mode == 'label') {//we need only measure label....
+      return formatsObj['desc']
+    }
+    else {//we need formatted measures value....
+      //date format....
+      if (formatsObj['type'] == "date") {
+        measureValue = utils.convertStringToDate(measureValue);
+        return measureValue;
+      }
+      //Currency symbol..
+      else if (formatsObj['symbol'].length > 0) {
+        measureValue = chartDataPreprocessor.shortenLargeNumber(measureValue);
+        console.log("formatsObjPassed case:" + JSON.stringify(measureValue));
+        return formatsObj['symbol'] + measureValue;
+      }//normal number format..
+      else {
+        return chartDataPreprocessor.shortenLargeNumber(measureValue);
+      }
+      return measureValue
+    }
+
+  }
   //This prepares AliasNames and formatting and etc...
   getMsrFormatLable = (text) => {
     const { dimensions, measures, measureValFormats } = this.props;
@@ -86,32 +147,23 @@ export default class Line extends Component {
       return chartDataPreprocessor.shortenLargeNumber(text);
     }
     return text
-
   }
 
-  
+
   //This prepares AliasNames and formatting and etc...
   getDimFormatLable = (text) => {
-      return chartDataPreprocessor.getDimFormatLable(text);
+    return chartDataPreprocessor.getDimFormatLable(text);
   }
-
 
   measuresAxisformatter = (text, item, index) => {
-   return this.getMsrFormatLable(text);
+    return this.getMsrFormatLable(text);
   }
-
 
   dimAxisformatter = (text, item, index) => {
     return this.getDimFormatLable(text);
-   }
+  }
 
-  tooltipFormat = [
-    'key*percent',
-    (k, p) => ({
-      name: k,
-      value: `${(p * 100).toFixed(2)}%`,
-    }),
-  ];
+
   //This generates the Funnel chart dynamically by using the data and config we passed...
   generateLineChart = (data) => {
     //get the properties from this use dims and measures and form columns and etc, conigurations...
@@ -119,15 +171,30 @@ export default class Line extends Component {
 
     //Get the cols
     const scale = this.getScale();
-
+   
     const ds = new DataSet();
     const dv = ds.createView().source(data);
-
+    //console.log("Data in DV"+JSON.stringify(dv.rows));
+    /**
+     * Important:On transform,we mainly deal wwith measures,we can also do dimension aswell
+     * 
+     * below key is the name that you are giving to measures
+     * value is the measures value reference--->by this value reference we can mention the measure values.
+     * Its like reference names for measures name and value
+     * 
+     * We can also use retain-this will remain in every row like dimension
+     *  retains : [ ' Country ' ] // reserved field set, Default is all fields except fields
+     * that means what ever the fields mentioned in fields[they will repeat..]
+     * no need to add retain
+     * 
+     * For reference: please refer: https://github.com/alibaba/BizCharts/blob/master/doc/api/transform.md
+     * 
+     */
     dv.transform({
       type: 'fold',
       fields: measures,
-      key: 'bookings',
-      value: 'value',
+      key: 'measurekey',
+      value: 'measurevalue',
     });
 
     const title = {
@@ -146,13 +213,13 @@ export default class Line extends Component {
     {/* formatter(text, item, index) {}, */ }
     return (
       <div>
-        <Chart height={window.innerHeight / 1.5} data={dv} forceFit scale={scale}>
+        <Chart data={dv} forceFit scale={scale}>
           <Axis name="key" label={{ formatter: this.dimAxisformatter }} />
-          <Axis name="value" label={{ formatter: this.measuresAxisformatter }} />
-          <Legend />
+          <Axis name="measurevalue" label={{ formatter: this.measuresAxisformatter }} />
+          <Legend itemFormatter={this.legnedFormatter} />
           <Tooltip crosshairs={{ type: "y" }} />
-          <Geom type="line" position="key*value" size={2} color={'bookings'} tooltip={this.tooltipFormat } />
-          <Geom type='point' position="key*value" size={4} shape={'circle'} color={'key'}
+          <Geom type="line" position="key*measurevalue" size={2} color={'measurekey'} tooltip={this.tooltipFormat} />
+          <Geom type='point' position="key*measurevalue" size={4} shape={'circle'} color={'measurekey'} tooltip={this.tooltipFormat}
             style={{ stroke: '#fff', lineWidth: 1 }} />
         </Chart>
       </div>
